@@ -26,6 +26,9 @@
       display: flex;
       flex-direction: column;
     }
+    .error {
+      color: red;
+    }
 
   </style>
 
@@ -65,13 +68,26 @@
             error: ''
           };
           this.generateRandomNote = this.generateRandomNote.bind(this);
+          this.destroyNote = this.destroyNote.bind(this);
         }
         async generateRandomNote(){
           this.setState({ error: '' });
           const { notes, user } = this.state;
           try {
-            const note = (await axios.post(`${API}/users/${user.id}/notes`, { archived: true, text: 'hi'})).data;
+            const note = (await axios.post(`${API}/users/${user.id}/notes`, { archived: true, text: `${ faker.lorem.sentence()}`})).data;
+            console.log('note in generateRandomNote', note);
             this.setState({ notes: [...notes, note ] })
+          }
+          catch(ex){
+            this.setState({ error: ex.response.data.message });
+          }
+        }
+        async destroyNote(note){
+          this.setState({ error: '' });
+          const { notes, user } = this.state;
+          try {
+            await axios.delete(`${API}/users/${user.id}/notes/${note.id}`);
+            this.setState({ notes: notes.filter( _note => _note.id !== note.id) });
           }
           catch(ex){
             this.setState({ error: ex.response.data.message });
@@ -84,7 +100,7 @@
         }
         render(){
           const { error, user, companies, vacations, followingCompanies, notes } = this.state;
-          const { generateRandomNote } = this;
+          const { generateRandomNote, destroyNote } = this;
           console.log('user', user);
           //console.log('notes', notes);
           console.log('faker', faker);
@@ -102,8 +118,8 @@
                     {
                       notes.map( note => (
                         <li key={note.id}>
-                          <p>{ faker.lorem.sentence()}</p>
-                          <button>destroy</button>
+                          <p>{note.text}</p>
+                          <button onClick={ ()=> destroyNote(note) }>destroy</button>
                         </li>
                       ))
                     }
