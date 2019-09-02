@@ -10,12 +10,23 @@
     body {
       font-family: verdana;
     }
+    form {
+      display: flex;
+      flex-direction: column;
+    }
     button {
       padding: 0.5rem;
+      cursor: pointer;
     }
     hr {
       border: 0.75px solid tomato;
     }
+    li {
+      list-style-type: none;
+      display: flex;
+      flex-direction: column;
+    }
+
   </style>
 
   </head>
@@ -69,10 +80,7 @@
         async componentDidMount(){
           const user = await fetchUser();
           const notes = (await axios.get(`${API}/users/${user.id}/notes`)).data;
-          this.setState({
-            user,
-            notes
-          });
+          this.setState({ user, notes });
         }
         render(){
           const { error, user, companies, vacations, followingCompanies, notes } = this.state;
@@ -87,21 +95,21 @@
               <div className='error'>{ error }</div>
               <h3>notes ({ notes.length })</h3>
               <div id='notes'>
+                <button onClick={ generateRandomNote }>Add A Random Note</button>
                 <form onSubmit={ ev => ev.preventDefault() }>
-                  <button onClick={ generateRandomNote }>Add A Random Note</button>
+
                   <ul>
                     {
                       notes.map( note => (
                         <li key={note.id}>
-                          <div>{ faker.lorem.sentence()}</div>
-                          <div><button>destroy</button></div>
+                          <p>{ faker.lorem.sentence()}</p>
+                          <button>destroy</button>
                         </li>
                       ))
                     }
                   </ul>
-
-                  <hr />
                 </form>
+                <hr />
               </div>
             </div>
           );
