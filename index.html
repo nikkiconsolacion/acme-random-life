@@ -70,6 +70,7 @@
           this.generateRandomNote = this.generateRandomNote.bind(this);
           this.destroyNote = this.destroyNote.bind(this);
           this.generateRandomCompany = this.generateRandomCompany.bind(this);
+          this.destroyCompany = this.destroyCompany.bind(this);
         }
         async generateRandomNote(){
           this.setState({ error: '' });
@@ -105,6 +106,17 @@
             this.setState({ error: ex.response.data.message });
           }
         }
+        async destroyCompany(company){
+          this.setState({ error: ''});
+          const { companies, followingCompanies, user } = this.state;
+          try {
+            await axios.delete(`${API}/users/${user.id}/followingCompanies/${company.id}`);
+            this.setState({ followingCompanies: followingCompanies.filter( _company => _company.id !== company.id) });
+          }
+          catch(ex){
+            this.setState({ error: ex.response.data.message });
+          }
+        }
         async componentDidMount(){
           const user = await fetchUser();
           const notes = (await axios.get(`${API}/users/${user.id}/notes`)).data;
@@ -114,7 +126,7 @@
         }
         render(){
           const { error, user, companies, vacations, followingCompanies, notes } = this.state;
-          const { generateRandomNote, destroyNote, generateRandomCompany } = this;
+          const { generateRandomNote, destroyNote, generateRandomCompany, destroyCompany } = this;
           console.log('user', user);
           console.log('faker', faker);
           console.log('followingCompanies', followingCompanies);
@@ -149,7 +161,7 @@
                       followingCompanies.map( company => (
                         <li key={company.id}>
                           <p>{companies.find( _company => company.companyId === _company.id).name}</p>
-                          <button>destroy</button>
+                          <button onClick={()=> destroyCompany(company)}>destroy</button>
                         </li>
                       ))
                     }
