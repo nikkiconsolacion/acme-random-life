@@ -95,7 +95,7 @@
         }
         async generateRandomCompany(){
           this.setState({ error: ''});
-          const { followingCompanies, user } = this.state;
+          const { followingCompanies, user, companies } = this.state;
           try {
             const company = (await axios.get(`${API}/companies/random`)).data;
             const followingCompany = (await axios.post(`${API}/users/${user.id}/followingCompanies`, { rating: 1, companyId: company.id })).data;
@@ -109,13 +109,13 @@
           const user = await fetchUser();
           const notes = (await axios.get(`${API}/users/${user.id}/notes`)).data;
           const followingCompanies = (await axios.get(`${API}/users/${user.id}/followingCompanies`)).data;
-          this.setState({ user, notes, followingCompanies });
+          const companies = (await axios.get(`${API}/companies`)).data;
+          this.setState({ user, notes, followingCompanies, companies });
         }
         render(){
           const { error, user, companies, vacations, followingCompanies, notes } = this.state;
           const { generateRandomNote, destroyNote, generateRandomCompany } = this;
           console.log('user', user);
-          //console.log('notes', notes);
           console.log('faker', faker);
           console.log('followingCompanies', followingCompanies);
           return (
@@ -148,7 +148,7 @@
                     {
                       followingCompanies.map( company => (
                         <li key={company.id}>
-                          <p>{company.companyId}</p>
+                          <p>{companies.find( _company => company.companyId === _company.id).name}</p>
                           <button>destroy</button>
                         </li>
                       ))
