@@ -84,6 +84,7 @@
           this.generateRandomCompany = this.generateRandomCompany.bind(this);
           this.destroyCompany = this.destroyCompany.bind(this);
           this.generateRandomVacation = this.generateRandomVacation.bind(this);
+          this.destroyVacation = this.destroyVacation.bind(this);
         }
         async generateRandomNote(){
           this.setState({ error: '' });
@@ -137,7 +138,18 @@
             const startDate = momentRandom();
             const endDate = moment(startDate).add(2, 'weeks').format('MM-DD-YYYY');
             const randomVacation = (await axios.post(`${API}/users/${user.id}/vacations`, { startDate: startDate.format('MM-DD-YYYY'), endDate })).data;
-            console.log('randomVacation', randomVacation);
+            this.setState({ vacations: [...vacations, randomVacation]});
+          }
+          catch(ex){
+            this.setState({ error: ex.response.data.message });
+          }
+        }
+        async destroyVacation(vacation){
+          this.setState({ error: ''});
+          const { vacations, user } = this.state;
+          try {
+            await axios.delete(`${API}/users/${user.id}/vacations/${vacation.id}`);
+            this.setState({ vacations: vacations.filter( _vacation => _vacation.id !== vacation.id) });
           }
           catch(ex){
             this.setState({ error: ex.response.data.message });
@@ -153,7 +165,7 @@
         }
         render(){
           const { error, user, companies, vacations, followingCompanies, notes } = this.state;
-          const { generateRandomNote, destroyNote, generateRandomCompany, destroyCompany, generateRandomVacation } = this;
+          const { generateRandomNote, destroyNote, generateRandomCompany, destroyCompany, generateRandomVacation, destroyVacation } = this;
           console.log('user', user);
           //console.log('faker', faker);
           return (
@@ -204,7 +216,7 @@
                       vacations.map( vacation => (
                         <li key={vacation.id}>
                           <p>{vacation.startDate.slice(0, 10)} to {vacation.endDate.slice(0, 10)}</p>
-                          <button>Destroy</button>
+                          <button onClick={()=> destroyVacation(vacation)}>Destroy</button>
                         </li>
                       ))
                     }
