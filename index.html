@@ -55,6 +55,18 @@
         storage.setItem('userId', user.id);
         return user;
       };
+      //function to generate a random moment between 2019 and 2020
+      const momentRandom = ()=> {
+        const mm = Math.ceil(Math.random() * 12);
+        const dd = (mm)=> {
+          const monthsWith31Days = [ 1, 3, 5, 7, 8, 10, 12];
+          let days = monthsWith31Days.includes(mm) ? 31 : 30;
+          if(mm === 2) days = 28;
+          return Math.ceil(Math.random() * days)
+        }
+        const yyyy = Math.round(2019 + Math.random());
+        return moment(`${mm}/${dd(mm)}/${yyyy}`);
+      }
 
       class App extends React.Component{
         constructor(){
@@ -71,6 +83,7 @@
           this.destroyNote = this.destroyNote.bind(this);
           this.generateRandomCompany = this.generateRandomCompany.bind(this);
           this.destroyCompany = this.destroyCompany.bind(this);
+          this.generateRandomVacation = this.generateRandomVacation.bind(this);
         }
         async generateRandomNote(){
           this.setState({ error: '' });
@@ -117,19 +130,32 @@
             this.setState({ error: ex.response.data.message });
           }
         }
+        async generateRandomVacation(){
+          this.setState({ error: ''});
+          const { user, vacations } = this.state;
+          try {
+            const startDate = momentRandom();
+            const endDate = moment(startDate).add(2, 'weeks').format('MM-DD-YYYY');
+            const randomVacation = (await axios.post(`${API}/users/${user.id}/vacations`, { startDate: startDate.format('MM-DD-YYYY'), endDate })).data;
+            console.log('randomVacation', randomVacation);
+          }
+          catch(ex){
+            this.setState({ error: ex.response.data.message });
+          }
+        }
         async componentDidMount(){
           const user = await fetchUser();
           const notes = (await axios.get(`${API}/users/${user.id}/notes`)).data;
           const followingCompanies = (await axios.get(`${API}/users/${user.id}/followingCompanies`)).data;
           const companies = (await axios.get(`${API}/companies`)).data;
-          this.setState({ user, notes, followingCompanies, companies });
+          const vacations = (await axios.get(`${API}/users/${user.id}/vacations`)).data;
+          this.setState({ user, notes, followingCompanies, companies, vacations });
         }
         render(){
           const { error, user, companies, vacations, followingCompanies, notes } = this.state;
-          const { generateRandomNote, destroyNote, generateRandomCompany, destroyCompany } = this;
+          const { generateRandomNote, destroyNote, generateRandomCompany, destroyCompany, generateRandomVacation } = this;
           console.log('user', user);
-          console.log('faker', faker);
-          console.log('followingCompanies', followingCompanies);
+          //console.log('faker', faker);
           return (
             <div>
               <h1>The Acme Random Life</h1>
@@ -144,7 +170,7 @@
                       notes.map( note => (
                         <li key={note.id}>
                           <p>{note.text}</p>
-                          <button onClick={ ()=> destroyNote(note) }>destroy</button>
+                          <button onClick={ ()=> destroyNote(note) }>Destroy</button>
                         </li>
                       ))
                     }
@@ -161,7 +187,24 @@
                       followingCompanies.map( company => (
                         <li key={company.id}>
                           <p>{companies.find( _company => company.companyId === _company.id).name}</p>
-                          <button onClick={()=> destroyCompany(company)}>destroy</button>
+                          <button onClick={()=> destroyCompany(company)}>Destroy</button>
+                        </li>
+                      ))
+                    }
+                  </ul>
+                </form>
+                <hr />
+              </div>
+              <div id='vacations'>
+                <h3>vacations ({ vacations.length})</h3>
+                <button onClick={ generateRandomVacation }>Add A Random Vacations</button>
+                <form onSubmit={ ev => ev.preventDefault()}>
+                  <ul>
+                    {
+                      vacations.map( vacation => (
+                        <li key={vacation.id}>
+                          <p>{vacation.startDate.slice(0, 10)} to {vacation.endDate.slice(0, 10)}</p>
+                          <button>Destroy</button>
                         </li>
                       ))
                     }
